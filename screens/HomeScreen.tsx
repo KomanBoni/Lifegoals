@@ -1,36 +1,12 @@
-import React, { useState } from 'react';
-import {View, FlatList, Text, StyleSheet, Platform, StatusBar} from 'react-native';
-import type { Goal, GoalStatus } from '../types/goal';
-import { generateId } from '../utils/id';
+import React from 'react';
+import { View, FlatList, Text, StyleSheet, Platform, StatusBar } from 'react-native';
+import type { Goal } from '../types/goal';
+import { useGoals } from '../context/GoalsContext';
 import { AddGoalInput } from '../components/AddGoalInput';
 import { GoalItem } from '../components/GoalItem';
 
 export function HomeScreen() {
-  const [goals, setGoals] = useState<Goal[]>([]);
-
-  const addGoal = (title: string) => {
-    const trimmed = title.trim();
-    if (!trimmed) return;
-    setGoals((prev) => [
-      ...prev,
-      {
-        id: generateId(),
-        title: trimmed,
-        status: 'progress',
-        createdAt: Date.now(),
-      },
-    ]);
-  };
-
-  const updateGoalStatus = (id: string, status: GoalStatus) => {
-    setGoals((prev) =>
-      prev.map((g) => (g.id === id ? { ...g, status } : g))
-    );
-  };
-
-  const deleteGoal = (id: string) => {
-    setGoals((prev) => prev.filter((g) => g.id !== id));
-  };
+  const { goals, addGoal, updateGoalStatus, deleteGoal } = useGoals();
 
   const renderItem = ({ item }: { item: Goal }) => (
     <GoalItem
