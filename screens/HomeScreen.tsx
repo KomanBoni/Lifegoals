@@ -9,7 +9,7 @@ import { ProgressCounter } from '../components/ProgressCounter';
 import { GoalItem } from '../components/GoalItem';
 
 export function HomeScreen() {
-  const { goals, addGoal, updateGoalStatus, deleteGoal } = useGoals();
+  const { goals, addGoal, updateGoalStatus, updateGoalTitle, deleteGoal } = useGoals();
   const [filter, setFilter] = useState<FilterStatus>('all');
 
   const filteredGoals = useMemo(() => {
@@ -26,6 +26,7 @@ export function HomeScreen() {
     <GoalItem
       goal={item}
       onStatusChange={updateGoalStatus}
+      onUpdateTitle={updateGoalTitle}
       onDelete={deleteGoal}
     />
   );

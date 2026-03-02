@@ -6,6 +6,7 @@ interface GoalsContextValue {
   goals: Goal[];
   addGoal: (title: string) => void;
   updateGoalStatus: (id: string, status: GoalStatus) => void;
+  updateGoalTitle: (id: string, title: string) => void;
   deleteGoal: (id: string) => void;
 }
 
@@ -34,6 +35,14 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const updateGoalTitle = useCallback((id: string, title: string) => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    setGoals((prev) =>
+      prev.map((g) => (g.id === id ? { ...g, title: trimmed } : g))
+    );
+  }, []);
+
   const deleteGoal = useCallback((id: string) => {
     setGoals((prev) => prev.filter((g) => g.id !== id));
   }, []);
@@ -42,6 +51,7 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
     goals,
     addGoal,
     updateGoalStatus,
+    updateGoalTitle,
     deleteGoal,
   };
 

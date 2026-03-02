@@ -1,10 +1,19 @@
-import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Alert} from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  TextInput,
+  Keyboard,
+} from 'react-native';
 import type { Goal, GoalStatus } from '../types/goal';
 
 interface GoalItemProps {
   goal: Goal;
   onStatusChange: (id: string, status: GoalStatus) => void;
+  onUpdateTitle: (id: string, title: string) => void;
   onDelete: (id: string) => void;
 }
 
@@ -26,7 +35,10 @@ function cycleStatus(goal: Goal): GoalStatus {
   return 'progress';
 }
 
-export function GoalItem({ goal, onStatusChange, onDelete }: GoalItemProps) {
+export function GoalItem({ goal, onStatusChange, onUpdateTitle, onDelete }: GoalItemProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(goal.title);
+
   const handleDelete = () => {
     Alert.alert(
       'Supprimer l\'objectif',
@@ -37,6 +49,49 @@ export function GoalItem({ goal, onStatusChange, onDelete }: GoalItemProps) {
       ]
     );
   };
+
+  const handleSaveEdit = () => {
+    const trimmed = editTitle.trim();
+    if (trimmed && trimmed !== goal.title) {
+      onUpdateTitle(goal.id, trimmed);
+    }
+    setIsEditing(false);
+    Keyboard.dismiss();
+  };
+
+  const handleCancelEdit = () => {
+    setEditTitle(goal.title);
+    setIsEditing(false);
+    Keyboard.dismiss();
+  };
+
+  if (isEditing) {
+    return (
+      <View style={styles.container}>
+        <TextInput
+          style={styles.input}
+          value={editTitle}
+          onChangeText={setEditTitle}
+          placeholder="Titre de l'objectif"
+          placeholderTextColor="#94a3b8"
+          autoFocus
+          maxLength={200}
+        />
+        <View style={styles.editActions}>
+          <TouchableOpacity style={[styles.actionBtn, styles.actionBtnCancel]} onPress={handleCancelEdit}>
+            <Text style={styles.actionBtnText}>Annuler</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.actionBtnSave]}
+            onPress={handleSaveEdit}
+            disabled={!editTitle.trim()}
+          >
+            <Text style={styles.actionBtnText}>Enregistrer</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -56,6 +111,15 @@ export function GoalItem({ goal, onStatusChange, onDelete }: GoalItemProps) {
         </View>
       </View>
       <View style={styles.actions}>
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnEdit]}
+          onPress={() => {
+            setEditTitle(goal.title);
+            setIsEditing(true);
+          }}
+        >
+          <Text style={styles.actionBtnText}>Modifier</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionBtn}
           onPress={() => onStatusChange(goal.id, cycleStatus(goal))}
@@ -116,6 +180,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  input: {
+    height: 44,
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    marginBottom: 12,
+  },
+  editActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   actions: {
     flexDirection: 'row',
     gap: 8,
@@ -126,6 +204,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#dbeafe',
     alignItems: 'center',
+  },
+  actionBtnEdit: {
+    backgroundColor: '#e0e7ff',
+  },
+  actionBtnSave: {
+    backgroundColor: '#22c55e',
+  },
+  actionBtnCancel: {
+    backgroundColor: '#f1f5f9',
   },
   actionBtnDanger: {
     backgroundColor: '#fee2e2',
