@@ -1,12 +1,26 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, FlatList, Text, StyleSheet, Platform, StatusBar } from 'react-native';
 import type { Goal } from '../types/goal';
+import type { FilterStatus } from '../components/FilterButtons';
 import { useGoals } from '../context/GoalsContext';
 import { AddGoalInput } from '../components/AddGoalInput';
+import { FilterButtons } from '../components/FilterButtons';
+import { ProgressCounter } from '../components/ProgressCounter';
 import { GoalItem } from '../components/GoalItem';
 
 export function HomeScreen() {
   const { goals, addGoal, updateGoalStatus, deleteGoal } = useGoals();
+  const [filter, setFilter] = useState<FilterStatus>('all');
+
+  const filteredGoals = useMemo(() => {
+    if (filter === 'all') return goals;
+    return goals.filter((g) => g.status === filter);
+  }, [goals, filter]);
+
+  const completedCount = useMemo(
+    () => goals.filter((g) => g.status === 'completed').length,
+    [goals]
+  );
 
   const renderItem = ({ item }: { item: Goal }) => (
     <GoalItem
@@ -20,16 +34,26 @@ export function HomeScreen() {
 
   const ListEmptyComponent = () => (
     <View style={styles.empty}>
-      <Text style={styles.emptyText}>Tu es nul ta 0 objectif pour le moment</Text>
+      <Text style={styles.emptyText}>
+        {filter === 'all'
+          ? 'Tu es nul ta 0 objectif pour le moment'
+          : `0 objectif c'est mauvais "${filter === 'progress' ? 'en cours' : 'terminé'}".`}
+      </Text>
     </View>
   );
 
-  const ListHeaderComponent = () => <AddGoalInput onAdd={addGoal} />;
+  const ListHeaderComponent = () => (
+    <>
+      <AddGoalInput onAdd={addGoal} />
+      <FilterButtons activeFilter={filter} onFilterChange={setFilter} />
+      <ProgressCounter completed={completedCount} total={goals.length} />
+    </>
+  );
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={goals}
+        data={filteredGoals}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         ListEmptyComponent={ListEmptyComponent}
